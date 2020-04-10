@@ -50,10 +50,11 @@ def my_data(filename, size):
 	return quizzes, solutions
 
 
-qmillion, smillion = my_data("mixedSudokusBetter.csv", 1000000)
+#qmillion, smillion = my_data("mixedSudokusBetter.csv", 1000000)
+q30k, s30k = my_data("30k_mixedSudokus75_80.csv", 30000)
 q80, s80 = my_data("s_make80.csv", 5000)
 q78, s78 = my_data("s_make78.csv", 5000)
-q75, s75 = my_data("s_make75.csv", 50000)
+#q75, s75 = my_data("s_make75.csv", 50000)
 # q70, s70 = my_data("s_make70.csv", 5000)
 # q65, s65 = my_data("s_make65.csv", 5000)
 # q60, s60 = my_data("s_make60.csv", 5000)
@@ -65,14 +66,14 @@ q75, s75 = my_data("s_make75.csv", 50000)
 # q67, s67 = my_data("s_make67.csv", 10000)
 # q68, s68 = my_data("s_make68.csv", 10000)
 # q69, s69 = my_data("s_make47.csv", 10000)
-qbig, sbig = their_data("sudokuBig.csv", 432032)
+# qbig, sbig = their_data("sudokuBig.csv", 432032)
 
 SEED = 42
 
 print("Done with file reading")
 
-mega_quiz = np.concatenate((qbig,qmillion,q75,q80,q78), axis=0)
-mega_sol = np.concatenate((sbig,smillion,s75,s80,s78), axis=0)
+mega_quiz = np.concatenate((q30k,q80,q78), axis=0)
+mega_sol = np.concatenate((s30k,s80,s78), axis=0)
 
 print("Done with concatenate")
 
@@ -132,27 +133,27 @@ print("Done with normalize")
 
 ## setup the model:
 model = tf.keras.Sequential()
-model.add(layers.Dense(units=81, input_shape=(9,9), activation='relu', bias_initializer='ones'))
-#model.add(layers.Dropout(0.05))
-model.add(layers.Dense(20, activation='linear', bias_initializer='ones'))	
-#model.add(layers.Dense(20, activation='linear', bias_initializer='ones'))
-#model.add(layers.Dropout(0.1))
-#model.add(layers.Dropout(0.1))			
-#model.add(layers.Dense(9, activation='linear', bias_initializer='random_uniform'))	
-#model.add(layers.Dense(66, activation='linear', bias_initializer='random_uniform'))
-model.add(layers.Dense(9, activation='linear'))			
+model.add(layers.Dense(81, input_shape=(9,9), activation='elu', bias_initializer='random_uniform'))
 
-opt = SGD(lr=0.25)
-model.compile(optimizer='adam',
+#model.add(layers.Dense(81, activation='linear', bias_initializer='random_uniform'))
+
+model.add(layers.Dense(16, activation='relu', bias_initializer='random_uniform'))
+	
+model.add(layers.Dense(9, activation='linear'))		
+
+opt = keras.optimizers.Adam(lr=0.001)
+opt2 = keras.optimizers.SGD(lr=0.001, nesterov=True)
+
+model.compile(optimizer=opt,
               loss='mean_squared_error',
-              metrics=['accuracy', 'binary_accuracy', 'categorical_accuracy', 'mean_absolute_error'])
+              metrics=['accuracy'])
 
 print(model.summary())
 
 
-history = model.fit(n_qmega, n_smega, epochs=2, batch_size=50, validation_split=0.001)
+history = model.fit(n_qmega, n_smega, epochs=5, batch_size=20, validation_split=0.001)
 
-
+## "Predict always takes a list... [] hmmm"
 n_predictions = model.predict(n_qmega)
 
 #n_predictions2 = model.predict(n_quizzes2)
@@ -193,10 +194,10 @@ print("Unique Values in Prediction: ", uniqueValues)
 print("Occurence Count in Prediction: ", occurCount)
 print()
 
-histogramS = plt.bar(uniqueValuesS, occurCountS)
-plt.xlabel('Distribution of Digits in Sudoku Solutions')
-plt.ylabel('Frequency')
-plt.show()
+#histogramS = plt.bar(uniqueValuesS, occurCountS)
+#plt.xlabel('Distribution of Digits in Sudoku Solutions')
+#plt.ylabel('Frequency')
+#plt.show()
 histogramP = plt.bar(uniqueValues, occurCount, )
 plt.xlabel('Distribution of Digits in Sudoku Solutions')
 plt.ylabel('Frequency')
